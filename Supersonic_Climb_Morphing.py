@@ -224,15 +224,15 @@ plot_results([('traj.phase0.timeseries.time', 'traj.phase0.timeseries.thrust',
                      p_sol=p, p_sim=sim)
 
 
-plot_results([('traj.phase0.timeseries.time', 'traj.phase0.timeseries.states:h',
-               'time (s)', 'altitude (m)'),('traj.phase0.timeseries.time', 'traj.phase0.timeseries.states:v',
+plot_results([('traj.phase0.timeseries.time', 'traj.phase0.timeseries.h',
+               'time (s)', 'altitude (m)'),('traj.phase0.timeseries.time', 'traj.phase0.timeseries.v',
                               'time (s)', 'speed (m/s)'), ('traj.phase0.timeseries.time', 'traj.phase0.timeseries.mach',
-                              'time (s)', 'Mach (-)'),('traj.phase0.timeseries.time', 'traj.phase0.timeseries.states:m',
-                 'time (s)', 'mass (kg)'),('traj.phase0.timeseries.time', 'traj.phase0.timeseries.controls:alpha',
+                              'time (s)', 'Mach (-)'),('traj.phase0.timeseries.time', 'traj.phase0.timeseries.m',
+                 'time (s)', 'mass (kg)'),('traj.phase0.timeseries.time', 'traj.phase0.timeseries.alpha',
                 'time (s)', 'alpha (deg)'),
-              ('traj.phase0.timeseries.time', 'traj.phase0.timeseries.controls:sweep',
-               'time (s)', 'sweep (deg)'),('traj.phase0.timeseries.time', 'traj.phase0.timeseries.controls:twist',
-                'time (s)', 'twist (deg)'),('traj.phase0.timeseries.time', 'traj.phase0.timeseries.controls:tipchord',
+              ('traj.phase0.timeseries.time', 'traj.phase0.timeseries.sweep',
+               'time (s)', 'sweep (deg)'),('traj.phase0.timeseries.time', 'traj.phase0.timeseries.twist',
+                'time (s)', 'twist (deg)'),('traj.phase0.timeseries.time', 'traj.phase0.timeseries.tipchord',
                  'time (s)', 'Tip Chord (m)')],
              title='Supersonic Minimum Fuel Climb Solution',
              p_sol=sol, p_sim=sim)
