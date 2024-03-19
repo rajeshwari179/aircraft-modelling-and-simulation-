@@ -165,7 +165,7 @@ p.model.linear_solver = om.DirectSolver()
 p.setup(check=True)
 
 p['traj.phase0.t_initial'] = 0.0
-p['traj.phase0.t_duration'] = 500
+p['traj.phase0.t_duration'] = 400
 
 p.set_val('traj.phase0.states:r', phase.interp('r', [0.0, 50000.0]))
 p.set_val('traj.phase0.states:h', phase.interp('h', [100.0, 20000.0]))
@@ -176,8 +176,6 @@ p.set_val('traj.phase0.controls:alpha', phase.interp('alpha', [-6.0, 16.0]))
 p.set_val('traj.phase0.controls:twist', phase.interp('twist', [-5.0, 5.0]))
 p.set_val('traj.phase0.controls:tipchord', phase.interp('tipchord', [5.0, 15.0]))
 p.set_val('traj.phase0.controls:sweep', phase.interp('sweep', [1.0, 65.0]))
-
-
 
 
 
