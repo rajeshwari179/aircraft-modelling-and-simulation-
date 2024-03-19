@@ -139,7 +139,7 @@ phase.add_parameter('throttle', val=1.0, opt=False, targets=['throttle'])
 # Setup the boundary and path constraints
 #
 phase.add_boundary_constraint('h', loc='final', equals=20000, scaler=1.0E-3)
-phase.add_boundary_constraint('aero.mach', loc='final', equals=1.0)
+phase.add_boundary_constraint('aero.mach', loc='final', equals=1.5)
 phase.add_boundary_constraint('gam', loc='final', equals=0.0)
 
 phase.add_path_constraint(name='h', lower=100.0, upper=20000, ref=20000)
