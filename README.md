@@ -12,6 +12,7 @@ To run the experiment, run *Supersonic_Climb_Morphing.py*. The different flags a
 * objective = 0 # 0 == Airtime ; 1 == Fuel Usage
 * variable_geometry = False
 * phase = 0 # 0 == Climb ; 1 == Descend ; 2 == Cruise
+
 To test the main experiment, which has been implemented, set the objective to Fuel Usage, Variable Geometry to true, and Phase to Climb.
 
 # Other Dependencies:
