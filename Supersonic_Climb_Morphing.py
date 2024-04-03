@@ -147,11 +147,19 @@ def runExperiment(debug,objective,flightphase,sweep,twist,tipchord,h,alpha,v):
   #
   # Setup the boundary and path constraints
   #
-  phase.add_boundary_constraint('h', loc='final', equals=20000, scaler=1.0E-3)
+
+  phase.add_boundary_constraint('h', loc='final', equals=h[1], scaler=1.0E-3)
   phase.add_boundary_constraint('aero.mach', loc='final', equals=1.3)
   phase.add_boundary_constraint('gam', loc='final', equals=0.0)
 
-  phase.add_path_constraint(name='h', lower=100.0, upper=20000, ref=20000)
+  if h[0] >= h[1]:
+    h_lower = h[1]
+    h_upper = h[0]
+  else:
+    h_lower = h[0]
+    h_upper = h[1]
+
+  phase.add_path_constraint(name='h', lower=h_lower, upper=h_upper, ref=20000)
   phase.add_path_constraint(name='aero.mach', lower=0.1, upper=1.9)
 
   # Phase string 
@@ -266,8 +274,8 @@ def runExperiment(debug,objective,flightphase,sweep,twist,tipchord,h,alpha,v):
 # Setting up flags
 debug = False
 objective = 0 # 0 == Airtime ; 1 == Fuel Usage
-variable_geometry = False
-flightphase = 0 # 0 == Climb ; 1 == Descend ; 2 == Cruise
+variable_geometry = True
+flightphase = 1 # 0 == Climb ; 1 == Descend ; 2 == Cruise
 
 if flightphase == 0:
   h = [100.0, 20000.0]
@@ -275,8 +283,8 @@ if flightphase == 0:
   alpha = [-6.0, 16.0]
 elif flightphase == 1:
   h = [20000.0, 1500.0]
-  v = [135.964, 483.159]
-  alpha = [-6.0, 16.0]
+  v = [483.159, 135.964]
+  alpha = [16.0, -6.0]
 elif flightphase == 2:
   h = [20000.0, 20000.0]
   v = [135.964, 483.159]
