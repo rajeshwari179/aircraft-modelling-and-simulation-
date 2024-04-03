@@ -56,7 +56,7 @@ class MinTimeClimbODE(om.Group):
         self.connect('aero.f_lift', 'flight_dynamics.L')
         self.connect('prop.thrust', 'flight_dynamics.T')
 
-def runExperiment(debug,objective,flightphase,sweep,twist,tipchord,h):
+def runExperiment(debug,objective,flightphase,sweep,twist,tipchord,h,alpha,v):
   #
   # Instantiate the problem and configure the optimization driver
   #
@@ -117,8 +117,14 @@ def runExperiment(debug,objective,flightphase,sweep,twist,tipchord,h):
                   ref=1.0E3, defect_ref=1.0E3,
                   rate_source='prop.m_dot')
 
+  if(alpha[0] >= alpha[1]):
+    alpha_lower = alpha[1]
+    alpha_upper = alpha[0]
+  else:
+    alpha_lower = alpha[0]
+    alpha_upper = alpha[1]
 
-  phase.add_control('alpha', units='deg', lower=-6.0, upper=16.0, scaler=1.0,
+  phase.add_control('alpha', units='deg', lower=alpha_lower, upper=alpha_upper, scaler=1.0,
                     rate_continuity=True, rate_continuity_scaler=100.0,
                     rate2_continuity=False)
 
@@ -191,10 +197,10 @@ def runExperiment(debug,objective,flightphase,sweep,twist,tipchord,h):
 
   p.set_val('traj.phase0.states:r', phase.interp('r', [0.0, 50000.0]))
   p.set_val('traj.phase0.states:h', phase.interp('h', h))
-  p.set_val('traj.phase0.states:v', phase.interp('v', [135.964, 483.159]))
+  p.set_val('traj.phase0.states:v', phase.interp('v', v))
   p.set_val('traj.phase0.states:gam', phase.interp('gam', [0.0, 0.0]))
   p.set_val('traj.phase0.states:m', phase.interp('m', [170000, 10000.]))
-  p.set_val('traj.phase0.controls:alpha', phase.interp('alpha', [-6.0, 16.0]))
+  p.set_val('traj.phase0.controls:alpha', phase.interp('alpha', alpha))
   p.set_val('traj.phase0.controls:twist', phase.interp('twist', twist))
   p.set_val('traj.phase0.controls:tipchord', phase.interp('tipchord', tipchord))
   p.set_val('traj.phase0.controls:sweep', phase.interp('sweep', sweep))
@@ -265,10 +271,16 @@ flightphase = 0 # 0 == Climb ; 1 == Descend ; 2 == Cruise
 
 if flightphase == 0:
   h = [100.0, 20000.0]
+  v = [135.964, 483.159]
+  alpha = [-6.0, 16.0]
 elif flightphase == 1:
   h = [20000.0, 1500.0]
+  v = [135.964, 483.159]
+  alpha = [-6.0, 16.0]
 elif flightphase == 2:
   h = [20000.0, 20000.0]
+  v = [135.964, 483.159]
+  alpha = [-6.0, 16.0]
 
 if variable_geometry == True:
   twist = [-5.0, 5.0]
@@ -278,4 +290,4 @@ else:
   twist = [-4, -4]
   tipchord = [6.0,6.0]
   sweep = [30.0, 30.0]
-runExperiment(debug,objective,flightphase,sweep,twist,tipchord,h)
+runExperiment(debug,objective,flightphase,sweep,twist,tipchord,h,alpha,v)
