@@ -56,7 +56,7 @@ class MinTimeClimbODE(om.Group):
         self.connect('aero.f_lift', 'flight_dynamics.L')
         self.connect('prop.thrust', 'flight_dynamics.T')
 
-def runExperiment(debug,objective,flightphase,sweep,twist,tipchord,h,alpha,v):
+def runExperiment(debug,objective,flightphase,sweep,twist,tipchord,h,alpha,v,mach_boundary):
   #
   # Instantiate the problem and configure the optimization driver
   #
@@ -149,7 +149,7 @@ def runExperiment(debug,objective,flightphase,sweep,twist,tipchord,h,alpha,v):
   #
 
   phase.add_boundary_constraint('h', loc='final', equals=h[1], scaler=1.0E-3)
-  phase.add_boundary_constraint('aero.mach', loc='final', equals=1.3)
+  phase.add_boundary_constraint('aero.mach', loc='final', equals=mach_boundary)
   phase.add_boundary_constraint('gam', loc='final', equals=0.0)
 
   if h[0] >= h[1]:
@@ -281,14 +281,17 @@ if flightphase == 0:
   h = [100.0, 20000.0]
   v = [135.964, 483.159]
   alpha = [-6.0, 16.0]
+  mach_boundary = 1.3
 elif flightphase == 1:
-  h = [20000.0, 1500.0]
-  v = [483.159, 135.964]
+  h = [20000.0, 100.0]
+  v = [392.567, 135.964]
   alpha = [16.0, -6.0]
+  mach_boundary = 0.46
 elif flightphase == 2:
   h = [20000.0, 20000.0]
   v = [135.964, 483.159]
   alpha = [-6.0, 16.0]
+  mach_boundary = 1.3
 
 if variable_geometry == True:
   twist = [-5.0, 5.0]
@@ -298,4 +301,4 @@ else:
   twist = [-4, -4]
   tipchord = [6.0,6.0]
   sweep = [30.0, 30.0]
-runExperiment(debug,objective,flightphase,sweep,twist,tipchord,h,alpha,v)
+runExperiment(debug,objective,flightphase,sweep,twist,tipchord,h,alpha,v,mach_boundary)
