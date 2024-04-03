@@ -56,7 +56,7 @@ class MinTimeClimbODE(om.Group):
         self.connect('aero.f_lift', 'flight_dynamics.L')
         self.connect('prop.thrust', 'flight_dynamics.T')
 
-def runExperiment(debug,objective,variable_geometry,sweep,twist,tipchord,h):
+def runExperiment(debug,objective,flightphase,sweep,twist,tipchord,h):
   #
   # Instantiate the problem and configure the optimization driver
   #
@@ -148,13 +148,24 @@ def runExperiment(debug,objective,variable_geometry,sweep,twist,tipchord,h):
   phase.add_path_constraint(name='h', lower=100.0, upper=20000, ref=20000)
   phase.add_path_constraint(name='aero.mach', lower=0.1, upper=1.9)
 
+  # Phase string 
+  if flightphase == 0:
+    phase_text = 'Climb'
+  elif flightphase == 1:
+    phase_text = 'Descend'
+  elif flightphase == 2:
+    phase_text = 'Cruise'
+  else: 
+    raise Exception("Wrong phase was selected.")
+
+
   # Minimize time at the end of the phase
   if objective == 0:
     phase.add_objective('time', loc='final', ref=1.0)
-    plot_title = 'Supersonic Minimum Airtime Climb Solution'
+    plot_title = 'Supersonic Minimum Airtime ' + phase_text + ' Solution'
   elif objective == 1:
     phase.add_objective('m', loc='final', scaler=-1)
-    plot_title = 'Supersonic Minimum Fuel Climb Solution'
+    plot_title = 'Supersonic Minimum Fuel ' + phase_text + ' Solution'
   else:
      raise Exception("Wrong objective function was selected.")
 
@@ -248,15 +259,15 @@ def runExperiment(debug,objective,variable_geometry,sweep,twist,tipchord,h):
 
 # Setting up flags
 debug = False
-objective = 0 # 0 == Airtime ; 1 == Fuel Usage
+objective = 1 # 0 == Airtime ; 1 == Fuel Usage
 variable_geometry = False
-phase = 0 # 0 == Climb ; 1 == Descend ; 2 == Cruise
+flightphase = 0 # 0 == Climb ; 1 == Descend ; 2 == Cruise
 
-if phase == 0:
+if flightphase == 0:
   h = [100.0, 20000.0]
-elif phase == 1:
-  h = [20000.0, 100.0]
-elif phase == 2:
+elif flightphase == 1:
+  h = [20000.0, 1500.0]
+elif flightphase == 2:
   h = [20000.0, 20000.0]
 
 if variable_geometry == True:
@@ -264,7 +275,7 @@ if variable_geometry == True:
   tipchord = [5.0, 15.0]
   sweep = [1.0, 65.0]
 else:
-  twist = [-5.0, -5.0]
-  tipchord = [5.0,5.0]
-  sweep = [50.0, 50.0]
-runExperiment(debug,objective,variable_geometry,sweep,twist,tipchord,h)
+  twist = [0.0, 0.0]
+  tipchord = [6.0,6.0]
+  sweep = [25.0, 25.0]
+runExperiment(debug,objective,flightphase,sweep,twist,tipchord,h)
