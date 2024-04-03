@@ -259,7 +259,7 @@ def runExperiment(debug,objective,flightphase,sweep,twist,tipchord,h):
 
 # Setting up flags
 debug = False
-objective = 1 # 0 == Airtime ; 1 == Fuel Usage
+objective = 0 # 0 == Airtime ; 1 == Fuel Usage
 variable_geometry = False
 flightphase = 0 # 0 == Climb ; 1 == Descend ; 2 == Cruise
 
@@ -275,7 +275,7 @@ if variable_geometry == True:
   tipchord = [5.0, 15.0]
   sweep = [1.0, 65.0]
 else:
-  twist = [0.0, 0.0]
+  twist = [-4, -4]
   tipchord = [6.0,6.0]
-  sweep = [25.0, 25.0]
+  sweep = [30.0, 30.0]
 runExperiment(debug,objective,flightphase,sweep,twist,tipchord,h)
