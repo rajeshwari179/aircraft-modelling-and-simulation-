@@ -310,7 +310,7 @@ elif flightphase == 2:
   h = [20000.0, 20000.0]
   v = [483.159, 483.159]
   alpha = [-6.0, 16.0]
-  mach_boundary = 0 # We do not use mach boundary for cruise.
+  mach_boundary = 1.3
 
 if variable_geometry == True:
   twist = [-5.0, 5.0]
