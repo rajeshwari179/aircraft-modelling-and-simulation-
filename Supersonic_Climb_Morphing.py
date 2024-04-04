@@ -56,7 +56,7 @@ class MinTimeClimbODE(om.Group):
         self.connect('aero.f_lift', 'flight_dynamics.L')
         self.connect('prop.thrust', 'flight_dynamics.T')
 
-def runExperiment(debug,objective,flightphase,sweep,twist,tipchord,h,alpha,v,mach_boundary):
+def runExperiment(debug,objective,flightphase,sweep,twist,tipchord,h,alpha,v,mach_boundary,variable_geometry):
   #
   # Instantiate the problem and configure the optimization driver
   #
@@ -101,11 +101,19 @@ def runExperiment(debug,objective,flightphase,sweep,twist,tipchord,h,alpha,v,mac
                   ref=1.0E3, defect_ref=1.0E3,
                   rate_source='flight_dynamics.r_dot')
 
-  phase.add_state('h', fix_initial=True, lower=0, upper=20000.0, units='m',
+  # Cruise will enforce constant speed and altitude.
+  if flightphase == 2:
+    phase.add_state('h', fix_initial=True, lower=h[0], upper=h[0], units='m',
                   ref=1.0E2, defect_ref=1.0E2,
                   rate_source='flight_dynamics.h_dot')
-
-  phase.add_state('v', fix_initial=True, lower=10.0, units='m/s',
+    phase.add_state('v', fix_initial=True, lower=v[0], upper=v[0], units='m/s',
+                  ref=1.0E2, defect_ref=1.0E2,
+                  rate_source='flight_dynamics.v_dot')
+  else:
+    phase.add_state('h', fix_initial=True, lower=0, upper=20000.0, units='m',
+                  ref=1.0E2, defect_ref=1.0E2,
+                  rate_source='flight_dynamics.h_dot')
+    phase.add_state('v', fix_initial=True, lower=10.0, units='m/s',
                   ref=1.0E2, defect_ref=1.0E2,
                   rate_source='flight_dynamics.v_dot')
 
@@ -149,8 +157,11 @@ def runExperiment(debug,objective,flightphase,sweep,twist,tipchord,h,alpha,v,mac
   #
 
   phase.add_boundary_constraint('h', loc='final', equals=h[1], scaler=1.0E-3)
-  phase.add_boundary_constraint('aero.mach', loc='final', equals=mach_boundary)
   phase.add_boundary_constraint('gam', loc='final', equals=0.0)
+  # Cruise does not need a boundary mach condition.
+  if phase != 2:
+   phase.add_boundary_constraint('aero.mach', loc='final', equals=mach_boundary)
+  
 
   if h[0] >= h[1]:
     h_lower = h[1]
@@ -172,14 +183,18 @@ def runExperiment(debug,objective,flightphase,sweep,twist,tipchord,h,alpha,v,mac
   else: 
     raise Exception("Wrong phase was selected.")
 
+  if variable_geometry == False:
+    geometry_text = 'Fixed Geometry'
+  elif variable_geometry == True:
+    geometry_text = 'Variable Geometry'
 
   # Minimize time at the end of the phase
   if objective == 0:
     phase.add_objective('time', loc='final', ref=1.0)
-    plot_title = 'Supersonic Minimum Airtime ' + phase_text + ' Solution'
+    plot_title = geometry_text + ' Supersonic Minimum Airtime ' + phase_text + ' Solution'
   elif objective == 1:
     phase.add_objective('m', loc='final', scaler=-1)
-    plot_title = 'Supersonic Minimum Fuel ' + phase_text + ' Solution'
+    plot_title = geometry_text + ' Supersonic Minimum Fuel ' + phase_text + ' Solution'
   else:
      raise Exception("Wrong objective function was selected.")
 
@@ -275,7 +290,7 @@ def runExperiment(debug,objective,flightphase,sweep,twist,tipchord,h,alpha,v,mac
 debug = False
 objective = 0 # 0 == Airtime ; 1 == Fuel Usage
 variable_geometry = True
-flightphase = 1 # 0 == Climb ; 1 == Descend ; 2 == Cruise
+flightphase = 2 # 0 == Climb ; 1 == Descend ; 2 == Cruise
 
 if flightphase == 0:
   h = [100.0, 20000.0]
@@ -283,15 +298,15 @@ if flightphase == 0:
   alpha = [-6.0, 16.0]
   mach_boundary = 1.3
 elif flightphase == 1:
-  h = [20000.0, 100.0]
-  v = [392.567, 135.964]
+  h = [20000.0, 1500.0]
+  v = [483.159, 135.964]
   alpha = [16.0, -6.0]
-  mach_boundary = 0.46
+  mach_boundary = 1.3
 elif flightphase == 2:
   h = [20000.0, 20000.0]
-  v = [135.964, 483.159]
-  alpha = [-6.0, 16.0]
-  mach_boundary = 1.3
+  v = [210.5, 210.5]
+  alpha = [16.0, -6.0]
+  mach_boundary = 0 # We do not use mach boundary for cruise.
 
 if variable_geometry == True:
   twist = [-5.0, 5.0]
@@ -301,4 +316,4 @@ else:
   twist = [-4, -4]
   tipchord = [6.0,6.0]
   sweep = [30.0, 30.0]
-runExperiment(debug,objective,flightphase,sweep,twist,tipchord,h,alpha,v,mach_boundary)
+runExperiment(debug,objective,flightphase,sweep,twist,tipchord,h,alpha,v,mach_boundary,variable_geometry)
