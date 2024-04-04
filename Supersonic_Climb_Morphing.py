@@ -102,7 +102,7 @@ def runExperiment(debug,objective,flightphase,sweep,twist,tipchord,h,alpha,v,mac
                   rate_source='flight_dynamics.r_dot')  
   
   # Cruise will enforce constant speed and altitude.
-  if flightphase == 2:
+  if flightphase != 2:
     phase.add_state('v', fix_initial=True, lower=10.0, units='m/s',
                   ref=1.0E2, defect_ref=1.0E2,
                   rate_source='flight_dynamics.v_dot')
@@ -290,7 +290,7 @@ def runExperiment(debug,objective,flightphase,sweep,twist,tipchord,h,alpha,v,mac
 debug = False
 objective = 0 # 0 == Airtime ; 1 == Fuel Usage
 variable_geometry = True
-flightphase = 2 # 0 == Climb ; 1 == Descend ; 2 == Cruise
+flightphase = 1 # 0 == Climb ; 1 == Descend ; 2 == Cruise
 
 if flightphase == 0:
   h = [100.0, 20000.0]
