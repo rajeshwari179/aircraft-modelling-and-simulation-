@@ -111,7 +111,7 @@ def runExperiment(debug,objective,flightphase,sweep,twist,tipchord,h,alpha,v,mac
                 rate_source='flight_dynamics.h_dot')
   else:
     # The false fix initial allow us to use the optimizer to force a path constraint
-    phase.add_state('v', fix_initial=False, lower=10.0, units='m/s',
+    phase.add_state('v', fix_initial=False, lower=v[0], upper=v[0], units='m/s',
                 ref=1.0E2, defect_ref=1.0E2,
                 rate_source='flight_dynamics.v_dot')
     phase.add_state('h', fix_initial=True, lower=h[0], upper=h[0], units='m',
@@ -161,6 +161,10 @@ def runExperiment(debug,objective,flightphase,sweep,twist,tipchord,h,alpha,v,mac
   phase.add_boundary_constraint('gam', loc='final', equals=0.0)
   phase.add_boundary_constraint('aero.mach', loc='final', equals=mach_boundary)
   
+  if phase == 2:
+    phase.add_boundary_constraint('h', loc='initial', equals=h[1], scaler=1.0E-3)
+    phase.add_boundary_constraint('aero.mach', loc='initial', equals=mach_boundary)
+
   if h[0] >= h[1]:
     h_lower = h[1]
     h_upper = h[0]
@@ -304,7 +308,7 @@ elif flightphase == 1:
   mach_boundary = 1.3
 elif flightphase == 2:
   h = [20000.0, 20000.0]
-  v = [100, 600]
+  v = [483.159, 483.159]
   alpha = [-6.0, 16.0]
   mach_boundary = 0 # We do not use mach boundary for cruise.
 
