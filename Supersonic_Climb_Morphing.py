@@ -99,8 +99,8 @@ def runExperiment(debug,objective,flightphase,sweep,twist,tipchord,h,alpha,v,mac
 
   phase.add_state('r', fix_initial=True, lower=0, upper=1.0E6, units='m',
                   ref=1.0E3, defect_ref=1.0E3,
-                  rate_source='flight_dynamics.r_dot')  
-  
+                  rate_source='flight_dynamics.r_dot')
+
   # Cruise will enforce constant speed and altitude.
   if flightphase != 2:
     phase.add_state('v', fix_initial=True, lower=10.0, units='m/s',
@@ -111,12 +111,12 @@ def runExperiment(debug,objective,flightphase,sweep,twist,tipchord,h,alpha,v,mac
                 rate_source='flight_dynamics.h_dot')
   else:
     # The false fix initial allow us to use the optimizer to force a path constraint
-    phase.add_state('v', fix_initial=False, lower=v[0], upper=v[0], units='m/s',
-                ref=1.0E2, defect_ref=1.0E2,
-                rate_source='flight_dynamics.v_dot')
-    phase.add_state('h', fix_initial=True, lower=h[0], upper=h[0], units='m',
-                ref=1.0E2, defect_ref=1.0E2,
-                rate_source='flight_dynamics.h_dot')
+    phase.add_state('h', fix_initial=False, lower=0, upper=20000.0, units='m',
+                  ref=1.0E2, defect_ref=1.0E2,
+                  rate_source='flight_dynamics.h_dot')
+    phase.add_state('v', fix_initial=False, lower=10.0, units='m/s',
+                  ref=1.0E2, defect_ref=1.0E2,
+                  rate_source='flight_dynamics.v_dot')
 
   phase.add_state('gam', fix_initial=True, lower=-1.5, upper=1.5, units='rad',
                   ref=1.0, defect_ref=1.0,
@@ -156,14 +156,11 @@ def runExperiment(debug,objective,flightphase,sweep,twist,tipchord,h,alpha,v,mac
   #
   # Setup the boundary and path constraints
   #
-  
-  phase.add_boundary_constraint('h', loc='final', equals=h[1], scaler=1.0E-3)
+
   phase.add_boundary_constraint('gam', loc='final', equals=0.0)
-  phase.add_boundary_constraint('aero.mach', loc='final', equals=mach_boundary)
-  
-  if phase == 2:
-    phase.add_boundary_constraint('h', loc='initial', equals=h[1], scaler=1.0E-3)
-    phase.add_boundary_constraint('aero.mach', loc='initial', equals=mach_boundary)
+  if flightphase != 2:
+    phase.add_boundary_constraint('h', loc='final', equals=h[1], scaler=1.0E-3)
+    phase.add_boundary_constraint('aero.mach', loc='final', equals=mach_boundary)
 
   if h[0] >= h[1]:
     h_lower = h[1]
@@ -172,12 +169,13 @@ def runExperiment(debug,objective,flightphase,sweep,twist,tipchord,h,alpha,v,mac
     h_lower = h[0]
     h_upper = h[1]
 
-  if phase != 2:
+  if flightphase != 2:
     phase.add_path_constraint(name='h', lower=h_lower, upper=h_upper, ref=20000)
     phase.add_path_constraint(name='aero.mach', lower=0.1, upper=1.9)
   else:
-    phase.add_path_constraint(name='h', lower=h[0], upper=h[0], ref=20000)
-    phase.add_path_constraint(name='aero.mach', lower=mach_boundary, upper=mach_boundary)
+    phase.add_path_constraint(name='flight_dynamics.h_dot', lower=-0.001, upper=0.001)
+    phase.add_path_constraint(name='flight_dynamics.v_dot', lower=-0.001, upper=0.001)
+    phase.add_path_constraint(name='aero.mach', lower=1, upper=1.9)
 
   # Phase string 
   if flightphase == 0:
@@ -276,25 +274,32 @@ def runExperiment(debug,objective,flightphase,sweep,twist,tipchord,h,alpha,v,mac
                         title='Debugging',
                         p_sol=p, p_sim=sim)
 
-  plot_results([('traj.phase0.timeseries.time', 'traj.phase0.timeseries.h',
-                'time (s)', 'altitude (m)'),('traj.phase0.timeseries.time', 'traj.phase0.timeseries.v',
-                                'time (s)', 'speed (m/s)'), ('traj.phase0.timeseries.time', 'traj.phase0.timeseries.mach',
-                                'time (s)', 'Mach (-)'),('traj.phase0.timeseries.time', 'traj.phase0.timeseries.m',
-                  'time (s)', 'mass (kg)'),('traj.phase0.timeseries.time', 'traj.phase0.timeseries.alpha',
-                  'time (s)', 'alpha (deg)'),
-                ('traj.phase0.timeseries.time', 'traj.phase0.timeseries.sweep',
-                'time (s)', 'sweep (deg)'),('traj.phase0.timeseries.time', 'traj.phase0.timeseries.twist',
-                  'time (s)', 'twist (deg)'),('traj.phase0.timeseries.time', 'traj.phase0.timeseries.tipchord',
-                  'time (s)', 'Tip Chord (m)')],
+  _,ax = plot_results([('traj.phase0.timeseries.time', 'traj.phase0.timeseries.h','time (s)', 'Altitude (m)'),
+                ('traj.phase0.timeseries.time', 'traj.phase0.timeseries.v','time (s)', 'Speed (m/s)'), 
+                ('traj.phase0.timeseries.time', 'traj.phase0.timeseries.mach','time (s)', 'Mach (-)'),
+                ('traj.phase0.timeseries.time', 'traj.phase0.timeseries.m','time (s)', 'Mass (kg)'),
+                ('traj.phase0.timeseries.time', 'traj.phase0.timeseries.alpha','time (s)', 'Alpha (deg)'),
+                ('traj.phase0.timeseries.time', 'traj.phase0.timeseries.sweep','time (s)', 'Sweep (deg)'),
+                ('traj.phase0.timeseries.time', 'traj.phase0.timeseries.twist','time (s)', 'Twist (deg)'),
+                ('traj.phase0.timeseries.time', 'traj.phase0.timeseries.tipchord','time (s)', 'Tip Chord (m)')],
               title=plot_title,
               p_sol=sol, p_sim=sim)
+  
+  ax[0].set_ylim(100,21000)
+  ax[1].set_ylim(100,600)
+  ax[2].set_ylim(0.5,2.5)
+  ax[3].set_ylim(150000,180000)
+  ax[4].set_ylim(-10,20)
+  ax[5].set_ylim(0,70)
+  ax[6].set_ylim(-10,10)
+  ax[7].set_ylim(0,20)
   plt.show()
 
 # Setting up flags
 debug = False
 objective = 0 # 0 == Airtime ; 1 == Fuel Usage
 variable_geometry = True
-flightphase = 1 # 0 == Climb ; 1 == Descend ; 2 == Cruise
+flightphase = 2 # 0 == Climb ; 1 == Descend ; 2 == Cruise
 
 if flightphase == 0:
   h = [100.0, 20000.0]
@@ -308,9 +313,9 @@ elif flightphase == 1:
   mach_boundary = 1.3
 elif flightphase == 2:
   h = [20000.0, 20000.0]
-  v = [483.159, 483.159]
-  alpha = [-6.0, 16.0]
-  mach_boundary = 1.3
+  v = [500, 500]
+  alpha = [16.0, -6.0]
+  mach_boundary = 0 # We do not use mach boundary for cruise.
 
 if variable_geometry == True:
   twist = [-5.0, 5.0]
