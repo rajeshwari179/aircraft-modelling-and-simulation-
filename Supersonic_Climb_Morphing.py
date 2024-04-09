@@ -103,12 +103,12 @@ def runExperiment(debug,objective,flightphase,sweep,twist,tipchord,h,alpha,v,mac
 
   # Cruise will enforce constant speed and altitude.
   if flightphase != 2:
-    phase.add_state('v', fix_initial=True, lower=10.0, units='m/s',
-                  ref=1.0E2, defect_ref=1.0E2,
-                  rate_source='flight_dynamics.v_dot')
     phase.add_state('h', fix_initial=True, lower=0, upper=20000.0, units='m',
                 ref=1.0E2, defect_ref=1.0E2,
                 rate_source='flight_dynamics.h_dot')
+    phase.add_state('v', fix_initial=True, lower=10.0, units='m/s',
+                  ref=1.0E2, defect_ref=1.0E2,
+                  rate_source='flight_dynamics.v_dot')
   else:
     # The false fix initial allow us to use the optimizer to force a path constraint
     phase.add_state('h', fix_initial=False, lower=0, upper=20000.0, units='m',
@@ -126,14 +126,7 @@ def runExperiment(debug,objective,flightphase,sweep,twist,tipchord,h,alpha,v,mac
                   ref=1.0E3, defect_ref=1.0E3,
                   rate_source='prop.m_dot')
 
-  if(alpha[0] >= alpha[1]):
-    alpha_lower = alpha[1]
-    alpha_upper = alpha[0]
-  else:
-    alpha_lower = alpha[0]
-    alpha_upper = alpha[1]
-
-  phase.add_control('alpha', units='deg', lower=alpha_lower, upper=alpha_upper, scaler=1.0,
+  phase.add_control('alpha', units='deg', lower=-6.0, upper=16.0, scaler=1.0,
                     rate_continuity=True, rate_continuity_scaler=100.0,
                     rate2_continuity=False)
 
@@ -157,20 +150,14 @@ def runExperiment(debug,objective,flightphase,sweep,twist,tipchord,h,alpha,v,mac
   # Setup the boundary and path constraints
   #
 
-  phase.add_boundary_constraint('gam', loc='final', equals=0.0)
   if flightphase != 2:
     phase.add_boundary_constraint('h', loc='final', equals=h[1], scaler=1.0E-3)
     phase.add_boundary_constraint('aero.mach', loc='final', equals=mach_boundary)
 
-  if h[0] >= h[1]:
-    h_lower = h[1]
-    h_upper = h[0]
-  else:
-    h_lower = h[0]
-    h_upper = h[1]
+  phase.add_boundary_constraint('gam', loc='final', equals=0.0)
 
   if flightphase != 2:
-    phase.add_path_constraint(name='h', lower=h_lower, upper=h_upper, ref=20000)
+    phase.add_path_constraint(name='h', lower=100.0, upper=20000, ref=20000)
     phase.add_path_constraint(name='aero.mach', lower=0.1, upper=1.9)
   else:
     phase.add_path_constraint(name='flight_dynamics.h_dot', lower=-0.001, upper=0.001)
@@ -181,11 +168,11 @@ def runExperiment(debug,objective,flightphase,sweep,twist,tipchord,h,alpha,v,mac
   if flightphase == 0:
     phase_text = 'Climb'
   elif flightphase == 1:
-    phase_text = 'Descend'
+    phase_text = 'Descent'
   elif flightphase == 2:
     phase_text = 'Cruise'
   else: 
-    raise Exception("Wrong phase was selected.")
+    raise Exception("Invalid flightphase was selected.")
 
   if variable_geometry == False:
     geometry_text = 'Fixed Geometry'
@@ -200,7 +187,7 @@ def runExperiment(debug,objective,flightphase,sweep,twist,tipchord,h,alpha,v,mac
     phase.add_objective('m', loc='final', scaler=-1)
     plot_title = geometry_text + ' Supersonic Minimum Fuel ' + phase_text + ' Solution'
   else:
-     raise Exception("Wrong objective function was selected.")
+     raise Exception("Invalid objective function was selected.")
 
   # Debugging
   if debug == True:
@@ -285,9 +272,9 @@ def runExperiment(debug,objective,flightphase,sweep,twist,tipchord,h,alpha,v,mac
               title=plot_title,
               p_sol=sol, p_sim=sim)
   
-  ax[0].set_ylim(100,21000)
-  ax[1].set_ylim(100,600)
-  ax[2].set_ylim(0.5,2.5)
+  ax[0].set_ylim(0,25000)
+  ax[1].set_ylim(0,1000)
+  ax[2].set_ylim(0.0,2.5)
   ax[3].set_ylim(150000,180000)
   ax[4].set_ylim(-10,20)
   ax[5].set_ylim(0,70)
@@ -299,7 +286,7 @@ def runExperiment(debug,objective,flightphase,sweep,twist,tipchord,h,alpha,v,mac
 debug = False
 objective = 0 # 0 == Airtime ; 1 == Fuel Usage
 variable_geometry = True
-flightphase = 2 # 0 == Climb ; 1 == Descend ; 2 == Cruise
+flightphase = 0 # 0 == Climb ; 1 == Descend ; 2 == Cruise
 
 if flightphase == 0:
   h = [100.0, 20000.0]
@@ -316,6 +303,8 @@ elif flightphase == 2:
   v = [500, 500]
   alpha = [16.0, -6.0]
   mach_boundary = 0 # We do not use mach boundary for cruise.
+else:
+  raise Exception("Invalid flightphase was selected.")
 
 if variable_geometry == True:
   twist = [-5.0, 5.0]
